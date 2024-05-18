@@ -112,38 +112,39 @@ lathigh = idx_lat+radius
 total_frame_gif = 20
 max_val = 60
 min_val = -100
-cnt_gif = []
 cnt_data = 0
 for iter_data in range(len(list_data_used)):
-    single_nc = list_data_used[iter_data]
-    try:
-        dset_nc = Dataset(single_nc)
-    except OSError:
-        cnt_gif = []
-        continue
-    data = dset_nc['IR'][0, latlow:lathigh, lonlow:lonhigh]
-    data = data - 273.15
-    data[data > max_val] = max_val
-    data[data < min_val] = min_val
+    cnt_gif = []
+    if iter_data+total_frame_gif > len(list_data_used):
+        break
+    for iter_file in range(iter_data, iter_data+total_frame_gif):
+        single_nc = list_data_used[iter_file]
+        try:
+            dset_nc = Dataset(single_nc)
+        except OSError:
+            cnt_gif = []
+            break
+        data = dset_nc['IR'][0, latlow:lathigh, lonlow:lonhigh]
+        data = data - 273.15
+        data[data > max_val] = max_val
+        data[data < min_val] = min_val
 
-    data = (data - min_val) / (max_val - min_val) * 255
-    #reverse color
-    data = 255 - data
-    data = data.astype(np.uint8)
+        data = (data - min_val) / (max_val - min_val) * 255
+        #reverse color
+        data = 255 - data
+        data = data.astype(np.uint8)
 
-    cnt_gif.append(data)
-    if len(cnt_gif) >=  total_frame_gif:
-        images = []
-        cnt_data += 1
-        # Create a new grayscale image
-        for iter_frame in range(total_frame_gif):
-            # Create an image from the array
-            img = Image.fromarray(cnt_gif[iter_frame], mode='L')
-            images.append(img)
-
-        # Save the sequence of images as a GIF
-        images[0].save('gif_dset/%s.gif'%(cnt_data), save_all=True, append_images=images[1:], loop=0, duration=100)
-        cnt_gif = []
+        cnt_gif.append(data)
+        #if len(cnt_gif) >=  total_frame_gif:
+    images = []
+    # Create a new grayscale image
+    for iter_frame in range(total_frame_gif):
+        # Create an image from the array
+        img = Image.fromarray(cnt_gif[iter_frame], mode='L')
+        images.append(img)
+    # Save the sequence of images as a GIF
+    images[0].save('gif_dset/%s.gif'%(iter_data+1), save_all=True, append_images=images[1:], loop=0, duration=100)
+            
 
 
 exit()
